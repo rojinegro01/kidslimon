@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Math Kids v1</title>
+
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  background: linear-gradient(#a8e6ff, #ffffff);
+}
+
+h1 {
+  color: #ff4081;
+}
+
+#question {
+  font-size: 42px;
+  margin: 20px;
+}
+
+input {
+  font-size: 24px;
+  padding: 10px;
+  text-align: center;
+}
+
+button {
+  font-size: 22px;
+  padding: 15px;
+  margin: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #4caf50;
+  color: white;
+}
+
+#result {
+  font-size: 28px;
+  margin-top: 20px;
+}
+
+#score {
+  font-size: 20px;
+  margin-top: 10px;
+  color: #333;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🎨 Math Kids v1</h1>
+
+<div id="question">?</div>
+
+<input type="number" id="answer" placeholder="Tu respuesta">
+
+<br>
+
+<button onclick="check()">Verificar</button>
+
+<p id="result"></p>
+<p id="score">Aciertos: 0</p>
+
+<!-- sonidos -->
+<audio id="okSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="errorSound" src="https://actions.google.com/sounds/v1/cartoon/boing.ogg"></audio>
+
+<script>
+// variables
+let num1, num2;
+let score = 0;
+
+// generar nueva suma
+function newQuestion(){
+  num1 = random(1,10);
+  num2 = random(1,10);
+
+  document.getElementById("question").innerHTML = 
+    num1 + " + " + num2 + " = ?";
+
+  document.getElementById("answer").value = "";
+}
+
+// verificar respuesta
+function check(){
+  let ans = parseInt(document.getElementById("answer").value);
+
+  if(ans === num1 + num2){
+    document.getElementById("result").innerHTML = "🎉 ¡Muy bien!";
+    document.getElementById("okSound").play();
+
+    score++;
+    document.getElementById("score").innerHTML = "Aciertos: " + score;
+
+    newQuestion();
+  } else {
+    document.getElementById("result").innerHTML = "❌ Intenta otra vez";
+    document.getElementById("errorSound").play();
+  }
+}
+
+// función random
+function random(min, max){
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// iniciar
+newQuestion();
+</script>
+
+</body>
+</html>
