@@ -1,116 +1,963 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Math Kids v1</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>✨ MatemÁgica ✨</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-body {
-  font-family: Arial;
-  text-align: center;
-  background: linear-gradient(#a8e6ff, #ffffff);
-}
+  :root {
+    --pink: #FF6EB4;
+    --purple: #9B5DE5;
+    --yellow: #FFE14D;
+    --mint: #00D4AA;
+    --orange: #FF8C42;
+    --sky: #4CC9F0;
+    --white: #FFFDF7;
+    --dark: #2D1B69;
+    --star: #FFD700;
+  }
 
-h1 {
-  color: #ff4081;
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-#question {
-  font-size: 42px;
-  margin: 20px;
-}
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, #1a0533 0%, #2d1b69 40%, #1a3a6b 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: var(--white);
+    user-select: none;
+  }
 
-input {
-  font-size: 24px;
-  padding: 10px;
-  text-align: center;
-}
+  /* ESTRELLAS DE FONDO */
+  .stars {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .star-bg {
+    position: absolute; background: white; border-radius: 50%;
+    animation: twinkle var(--d) ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
 
-button {
-  font-size: 22px;
-  padding: 15px;
-  margin: 10px;
-  border-radius: 10px;
-  border: none;
-  background: #4caf50;
-  color: white;
-}
+  /* LAYOUT PRINCIPAL */
+  #app {
+    position: relative; z-index: 1;
+    max-width: 420px; margin: 0 auto;
+    padding: 0 0 80px 0;
+    min-height: 100vh;
+  }
 
-#result {
-  font-size: 28px;
-  margin-top: 20px;
-}
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 18px 16px 10px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    background: linear-gradient(90deg, var(--pink), var(--yellow), var(--mint));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 1px;
+    text-shadow: none;
+    filter: drop-shadow(0 2px 8px rgba(255,110,180,0.5));
+  }
 
-#score {
-  font-size: 20px;
-  margin-top: 10px;
-  color: #333;
-}
+  /* BARRA DE ESTRELLAS */
+  .stars-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; margin-top: 6px; flex-wrap: wrap;
+  }
+  .star-count {
+    font-size: 0.95rem; font-weight: 900;
+    background: rgba(255,215,0,0.15);
+    border: 2px solid var(--star);
+    border-radius: 20px;
+    padding: 3px 12px;
+    color: var(--star);
+  }
+  .level-badge {
+    font-size: 0.85rem; font-weight: 900;
+    background: linear-gradient(90deg, var(--purple), var(--pink));
+    border-radius: 20px; padding: 3px 12px;
+    color: white;
+  }
+
+  /* NAVEGACIÓN POR TEMAS */
+  .nav-tabs {
+    display: flex; gap: 8px;
+    padding: 14px 12px 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex-shrink: 0;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: 'Nunito', sans-serif;
+    color: rgba(255,255,255,0.6);
+    font-weight: 700; font-size: 0.7rem;
+    text-align: center;
+  }
+  .tab-btn .icon { font-size: 1.7rem; }
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    border-color: var(--pink);
+    color: white;
+    transform: scale(1.08);
+    box-shadow: 0 4px 20px rgba(155,93,229,0.6);
+  }
+  .tab-btn .locked { font-size: 0.9rem; }
+
+  /* PANEL PRINCIPAL */
+  .panel {
+    padding: 14px 14px;
+  }
+
+  .section-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: var(--yellow);
+    text-align: center;
+    margin-bottom: 14px;
+    text-shadow: 0 2px 10px rgba(255,225,77,0.5);
+  }
+
+  /* TARJETA DE EJERCICIO */
+  .exercise-card {
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 24px;
+    padding: 20px 18px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(6px);
+    transition: all 0.3s;
+  }
+  .exercise-card.correct {
+    border-color: var(--mint);
+    background: rgba(0,212,170,0.15);
+    animation: correctPulse 0.5s ease;
+  }
+  .exercise-card.wrong {
+    border-color: #FF4D6D;
+    background: rgba(255,77,109,0.15);
+    animation: wrongShake 0.4s ease;
+  }
+  @keyframes correctPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }
+  @keyframes wrongShake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+
+  /* PREGUNTA */
+  .question {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.2rem;
+    text-align: center;
+    color: white;
+    margin: 10px 0 20px;
+    text-shadow: 0 2px 12px rgba(255,255,255,0.3);
+  }
+  .emoji-display {
+    font-size: 2.2rem;
+    text-align: center;
+    margin: 10px 0;
+    letter-spacing: 4px;
+    line-height: 1.4;
+  }
+
+  /* OPCIONES */
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .opt-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    background: rgba(255,255,255,0.1);
+    border: 3px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 16px 10px;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+  .opt-btn:active { transform: scale(0.94); }
+  .opt-btn.selected-correct {
+    background: linear-gradient(135deg, #00D4AA, #00A878);
+    border-color: #00D4AA;
+    animation: correctPulse 0.4s;
+  }
+  .opt-btn.selected-wrong {
+    background: linear-gradient(135deg, #FF4D6D, #CC1F3F);
+    border-color: #FF4D6D;
+  }
+  .opt-btn:disabled { cursor: default; }
+
+  /* FEEDBACK */
+  .feedback {
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    padding: 10px;
+    border-radius: 16px;
+    margin-top: 12px;
+    display: none;
+    animation: fadeIn 0.3s;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .feedback.show { display: block; }
+  .feedback.good { color: var(--mint); background: rgba(0,212,170,0.1); }
+  .feedback.bad { color: #FF8FA3; background: rgba(255,77,109,0.1); }
+
+  /* BOTÓN SIGUIENTE */
+  .next-btn {
+    width: 100%;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    border: none; border-radius: 20px;
+    padding: 16px;
+    color: white;
+    cursor: pointer;
+    margin-top: 14px;
+    display: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 20px rgba(155,93,229,0.5);
+    touch-action: manipulation;
+  }
+  .next-btn.show { display: block; }
+  .next-btn:active { transform: scale(0.97); }
+
+  /* LOGROS */
+  .achievements {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px; margin-top: 6px;
+  }
+  .achievement {
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    padding: 14px 8px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .achievement.unlocked {
+    background: rgba(255,215,0,0.12);
+    border-color: var(--star);
+    box-shadow: 0 4px 16px rgba(255,215,0,0.3);
+  }
+  .achievement .ach-icon { font-size: 2rem; display: block; margin-bottom: 4px; }
+  .achievement .ach-name { font-size: 0.65rem; font-weight: 900; color: rgba(255,255,255,0.7); }
+  .achievement.unlocked .ach-name { color: var(--star); }
+  .achievement .ach-lock { font-size: 1rem; opacity: 0.3; }
+
+  /* MONEDAS */
+  .coin-display {
+    display: flex; flex-wrap: wrap;
+    gap: 10px; justify-content: center;
+    margin: 14px 0;
+  }
+  .coin {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 3px solid;
+    touch-action: manipulation;
+    position: relative;
+  }
+  .coin.coin-1  { background: linear-gradient(135deg,#E8C97A,#C8A55A); border-color: #C8A55A; color: #7A4A00; }
+  .coin.coin-2  { background: linear-gradient(135deg,#E8C97A,#C8A55A); border-color: #C8A55A; color: #7A4A00; }
+  .coin.coin-5  { background: linear-gradient(135deg,#E8C97A,#C8A55A); border-color: #C8A55A; color: #7A4A00; }
+  .coin.coin-10 { background: linear-gradient(135deg,#D4D4D4,#A8A8A8); border-color: #888; color: #333; }
+  .coin.coin-50 { background: linear-gradient(135deg,#D4D4D4,#A8A8A8); border-color: #888; color: #333; }
+  .coin:active { transform: scale(0.92); }
+  .coin .cval { font-size: 1.2rem; font-weight: 900; }
+  .coin .cunit { font-size: 0.55rem; font-weight: 700; }
+
+  /* TOTAL DE MONEDAS */
+  .coin-total {
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--yellow);
+    background: rgba(255,225,77,0.1);
+    border: 2px dashed rgba(255,225,77,0.4);
+    border-radius: 16px;
+    padding: 12px;
+    margin: 10px 0;
+  }
+
+  /* BARRA DE PROGRESO */
+  .progress-wrap { margin: 8px 0 14px; }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.75rem; font-weight: 700;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 4px;
+  }
+  .progress-bar {
+    height: 10px; background: rgba(255,255,255,0.1);
+    border-radius: 10px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pink), var(--yellow));
+    border-radius: 10px;
+    transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 0 10px rgba(255,110,180,0.5);
+  }
+
+  /* PANTALLA DE CELEBRACIÓN */
+  #celebration {
+    display: none;
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0.85);
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 30px;
+  }
+  #celebration.show { display: flex; }
+  .cel-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    color: var(--yellow);
+    animation: bounce 0.6s infinite alternate;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 20px var(--star));
+  }
+  @keyframes bounce { from { transform: translateY(0) scale(1); } to { transform: translateY(-12px) scale(1.05); } }
+  .cel-sub { font-size: 1.1rem; color: white; margin-bottom: 20px; }
+  .cel-stars { font-size: 3rem; margin: 10px 0; letter-spacing: 8px; }
+  .cel-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, var(--mint), #00A878);
+    border: none; border-radius: 20px;
+    padding: 16px 40px; color: white;
+    cursor: pointer; margin-top: 20px;
+    box-shadow: 0 6px 20px rgba(0,212,170,0.5);
+    touch-action: manipulation;
+  }
+  .confetti { position: absolute; animation: fall linear infinite; font-size: 1.4rem; }
+  @keyframes fall {
+    from { transform: translateY(-60px) rotate(0deg); opacity: 1; }
+    to   { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.85); color: white;
+    padding: 10px 24px; border-radius: 30px;
+    font-family: 'Fredoka One', cursive; font-size: 1rem;
+    z-index: 500; pointer-events: none;
+    transition: opacity 0.3s; opacity: 0;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  #toast.show { opacity: 1; }
+
+  /* PANTALLA INICIO */
+  #homeScreen {
+    padding: 24px 16px;
+    text-align: center;
+  }
+  .home-mascot { font-size: 6rem; margin: 20px 0; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+  .home-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    background: linear-gradient(90deg, var(--pink), var(--yellow), var(--mint));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 3px 12px rgba(255,110,180,0.5));
+  }
+  .home-sub { font-size: 1rem; color: rgba(255,255,255,0.7); margin: 8px 0 30px; }
+  .start-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    border: none; border-radius: 24px;
+    padding: 18px 50px; color: white;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(155,93,229,0.6);
+    animation: pulse-btn 2s ease-in-out infinite;
+    touch-action: manipulation;
+  }
+  @keyframes pulse-btn {
+    0%,100% { box-shadow: 0 8px 30px rgba(155,93,229,0.6); transform: scale(1); }
+    50% { box-shadow: 0 8px 40px rgba(255,110,180,0.8); transform: scale(1.04); }
+  }
+
+  /* CUENTO DEL PERSONAJE */
+  .char-name { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--pink); margin-top: 20px; }
+  .char-msg { font-size: 0.9rem; color: rgba(255,255,255,0.7); margin: 4px 0 16px; }
+
+  /* MINI-STATS */
+  .mini-stats {
+    display: flex; gap: 10px; justify-content: center;
+    margin: 10px 0 4px;
+  }
+  .mini-stat {
+    background: rgba(255,255,255,0.07);
+    border-radius: 14px; padding: 8px 14px;
+    text-align: center;
+  }
+  .mini-stat .ms-val { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: var(--yellow); }
+  .mini-stat .ms-lbl { font-size: 0.65rem; font-weight: 700; color: rgba(255,255,255,0.5); }
+
+  /* INFO BADGE */
+  .info-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 6px 14px;
+    font-size: 0.78rem; color: rgba(255,255,255,0.6);
+    margin: 4px auto; text-align: center;
+  }
+
+  /* BARRA INFERIOR */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 420px;
+    background: rgba(20,10,50,0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex; justify-content: space-around;
+    padding: 10px 0 12px;
+    z-index: 200;
+  }
+  .bnav-btn {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px; cursor: pointer;
+    font-size: 0.6rem; font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    transition: all 0.2s;
+    touch-action: manipulation;
+    padding: 4px 12px;
+  }
+  .bnav-btn .bico { font-size: 1.5rem; }
+  .bnav-btn.active { color: var(--pink); }
+  .bnav-btn.active .bico { filter: drop-shadow(0 0 8px var(--pink)); }
+
+  /* COIN-GAME */
+  .coin-task {
+    font-size: 1.1rem; font-weight: 700;
+    text-align: center; color: white;
+    background: rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 12px;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .coin-reset {
+    font-family: 'Fredoka One', cursive;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 14px; padding: 10px 20px;
+    color: white; cursor: pointer; font-size: 1rem;
+    transition: all 0.2s; display: block; margin: 10px auto;
+    touch-action: manipulation;
+  }
+  .coin-reset:active { transform: scale(0.95); }
 </style>
-
 </head>
-
 <body>
 
-<h1>🎨 Math Kids v5</h1>
+<!-- Estrellas de fondo -->
+<div class="stars" id="starsBg"></div>
 
-<div id="question">?</div>
+<div id="app">
 
-<input type="number" id="answer" placeholder="Tu respuesta">
+  <!-- PANTALLA INICIO -->
+  <div id="homeScreen">
+    <div class="home-mascot">🦄</div>
+    <div class="home-title">MatemÁgica</div>
+    <p class="home-sub">¡Aprende matemáticas con magia! ✨</p>
+    <button class="start-btn" onclick="startApp()">¡Vamos a jugar! 🎮</button>
+    <p class="char-name">🌟 Luna la Unicornio dice:</p>
+    <p class="char-msg">"¡Aprende matemáticas y gana estrellas mágicas!"</p>
+  </div>
 
-<br>
+  <!-- PANTALLA PRINCIPAL -->
+  <div id="mainScreen" style="display:none;">
 
-<button onclick="check()">Verificar</button>
+    <!-- HEADER -->
+    <div class="header">
+      <h1>✨ MatemÁgica</h1>
+      <div class="stars-bar">
+        <div class="star-count">⭐ <span id="totalStars">0</span> estrellas</div>
+        <div class="level-badge">Nivel <span id="levelNum">1</span></div>
+      </div>
+    </div>
 
-<p id="result"></p>
-<p id="score">Aciertos: 0</p>
+    <!-- TABS -->
+    <div class="nav-tabs">
+      <div class="tab-btn active" onclick="switchTab('count')" id="tab-count">
+        <span class="icon">🍎</span><span>Contar</span>
+      </div>
+      <div class="tab-btn" onclick="switchTab('sum')" id="tab-sum">
+        <span class="icon">➕</span><span>Sumas</span>
+      </div>
+      <div class="tab-btn" onclick="switchTab('sub')" id="tab-sub">
+        <span class="icon">➖</span><span>Restas</span>
+      </div>
+      <div class="tab-btn" onclick="switchTab('coins')" id="tab-coins">
+        <span class="icon">🪙</span><span>Monedas</span>
+      </div>
+      <div class="tab-btn" onclick="switchTab('trophies')" id="tab-trophies">
+        <span class="icon">🏆</span><span>Logros</span>
+      </div>
+    </div>
 
-<!-- sonidos -->
-<audio id="okSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-<audio id="errorSound" src="https://actions.google.com/sounds/v1/cartoon/boing.ogg"></audio>
+    <!-- PANEL -->
+    <div class="panel" id="mainPanel"></div>
+
+  </div>
+</div>
+
+<!-- CELEBRACIÓN -->
+<div id="celebration">
+  <div id="celConfetti"></div>
+  <div class="cel-stars" id="celStars"></div>
+  <div class="cel-title" id="celTitle">¡INCREÍBLE! 🎉</div>
+  <div class="cel-sub" id="celSub">¡Ganaste 3 estrellas!</div>
+  <button class="cel-btn" onclick="closeCelebration()">¡Seguir jugando! 🚀</button>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- BARRA INFERIOR -->
+<div class="bottom-nav" id="bottomNav" style="display:none;">
+  <div class="bnav-btn active" onclick="switchTab('count')" id="bnav-count">
+    <span class="bico">🍎</span><span>Contar</span>
+  </div>
+  <div class="bnav-btn" onclick="switchTab('sum')" id="bnav-sum">
+    <span class="bico">➕</span><span>Sumas</span>
+  </div>
+  <div class="bnav-btn" onclick="switchTab('sub')" id="bnav-sub">
+    <span class="bico">➖</span><span>Restas</span>
+  </div>
+  <div class="bnav-btn" onclick="switchTab('coins')" id="bnav-coins">
+    <span class="bico">🪙</span><span>Monedas</span>
+  </div>
+  <div class="bnav-btn" onclick="switchTab('trophies')" id="bnav-trophies">
+    <span class="bico">🏆</span><span>Logros</span>
+  </div>
+</div>
 
 <script>
-// variables
-let num1, num2;
-let score = 0;
+// ========== ESTADO GLOBAL ==========
+const state = {
+  stars: 0, level: 1,
+  correct: 0, total: 0,
+  streak: 0, maxStreak: 0,
+  coinsCollected: 0,
+  achievements: {
+    first: false, streak3: false, streak5: false,
+    stars10: false, stars25: false, stars50: false,
+    count10: false, sum10: false, sub10: false, coins10: false,
+    perfect5: false,
+  },
+  correctPerTopic: { count: 0, sum: 0, sub: 0, coins: 0 },
+  coinGameTotal: 0,
+  currentTab: 'count',
+};
 
-// generar nueva suma
-function newQuestion(){
-  num1 = random(1,10);
-  num2 = random(1,10);
+// ========== ESTRELLAS DE FONDO ==========
+(function createBgStars() {
+  const c = document.getElementById('starsBg');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'star-bg';
+    const size = Math.random() * 3 + 1;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      --d:${(Math.random()*3+2).toFixed(1)}s;
+      animation-delay:${(Math.random()*4).toFixed(1)}s;
+    `;
+    c.appendChild(s);
+  }
+})();
 
-  document.getElementById("question").innerHTML = 
-    num1 + " + " + num2 + " = ?";
-
-  document.getElementById("answer").value = "";
+// ========== INICIO ==========
+function startApp() {
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display = 'block';
+  document.getElementById('bottomNav').style.display = 'flex';
+  switchTab('count');
 }
 
-// verificar respuesta
-function check(){
-  let ans = parseInt(document.getElementById("answer").value);
+// ========== SWITCH TAB ==========
+function switchTab(tab) {
+  state.currentTab = tab;
+  // tabs
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab)?.classList.add('active');
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('bnav-'+tab)?.classList.add('active');
 
-  if(ans === num1 + num2){
-    document.getElementById("result").innerHTML = "🎉 ¡Muy bien!";
-    document.getElementById("okSound").play();
+  const panel = document.getElementById('mainPanel');
+  if (tab === 'count')   renderCount(panel);
+  if (tab === 'sum')     renderSum(panel);
+  if (tab === 'sub')     renderSub(panel);
+  if (tab === 'coins')   renderCoins(panel);
+  if (tab === 'trophies') renderTrophies(panel);
+}
 
-    score++;
-    document.getElementById("score").innerHTML = "Aciertos: " + score;
+// ========== ACTUALIZAR HEADER ==========
+function updateHeader() {
+  document.getElementById('totalStars').textContent = state.stars;
+  document.getElementById('levelNum').textContent = state.level;
+}
 
-    newQuestion();
-  } else {
-    document.getElementById("result").innerHTML = "❌ Intenta otra vez";
-    document.getElementById("errorSound").play();
+// ========== GENERAR EMOJIS ==========
+const EMOJI_SETS = ['🍎','🌸','⭐','🦋','🐱','🌈','🍓','🎈','🍄','🦄','🐸','🌻'];
+function randomEmoji() { return EMOJI_SETS[Math.floor(Math.random()*EMOJI_SETS.length)]; }
+function buildEmojiLine(n, emoji) {
+  let r = '';
+  for(let i=0;i<n;i++) r += emoji + (i%5===4&&i<n-1?'\n':' ');
+  return r;
+}
+
+// ========== RENDER GENÉRICO ==========
+function renderExercise(panel, { title, question, emojiLine, options, correct, starsGiven=1, topic }) {
+  let answered = false;
+  panel.innerHTML = `
+    <div class="section-title">${title}</div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Progreso de hoy</span>
+        <span>${state.correctPerTopic[topic]}/10</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${state.correctPerTopic[topic]*10}%"></div></div>
+    </div>
+    <div class="exercise-card" id="exCard">
+      <div class="question">${question}</div>
+      ${emojiLine ? `<div class="emoji-display">${emojiLine}</div>` : ''}
+      <div class="options" id="opts">
+        ${options.map((o,i)=>`<button class="opt-btn" onclick="checkAnswer(${i})">${o}</button>`).join('')}
+      </div>
+      <div class="feedback" id="fb"></div>
+    </div>
+    <button class="next-btn" id="nextBtn" onclick="switchTab('${topic}')">¡Siguiente! ➡️</button>
+  `;
+
+  window.checkAnswer = function(idx) {
+    if (answered) return;
+    answered = true;
+    const opts = document.querySelectorAll('.opt-btn');
+    const card = document.getElementById('exCard');
+    const fb = document.getElementById('fb');
+    const nb = document.getElementById('nextBtn');
+    state.total++;
+
+    opts.forEach(b => b.disabled = true);
+
+    if (idx === correct) {
+      opts[idx].classList.add('selected-correct');
+      card.classList.add('correct');
+      state.stars += starsGiven;
+      state.correct++;
+      state.streak++;
+      if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+      state.correctPerTopic[topic]++;
+      if (state.correctPerTopic[topic] > 10) state.correctPerTopic[topic] = 10;
+      state.level = Math.floor(state.stars / 10) + 1;
+      updateHeader();
+      checkAchievements();
+
+      fb.className = 'feedback show good';
+      const msgs = ['¡Súper bien! 🌟','¡Lo lograste! 🎉','¡Eres increíble! 🦄','¡Perfecto! ✨','¡Bravo! 🌈','¡Maravilloso! 🌸'];
+      fb.textContent = msgs[Math.floor(Math.random()*msgs.length)] + ` +${starsGiven}⭐`;
+
+      if (state.stars % 5 === 0) showCelebration();
+    } else {
+      opts[idx].classList.add('selected-wrong');
+      opts[correct].classList.add('selected-correct');
+      card.classList.add('wrong');
+      state.streak = 0;
+      fb.className = 'feedback show bad';
+      const msgs = ['¡Casi! Inténtalo de nuevo 💪','¡No te rindas! 🌸','¡Tú puedes! 🦋'];
+      fb.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+    }
+    nb.classList.add('show');
+  };
+}
+
+// ========== CONTAR ==========
+function renderCount(panel) {
+  const n = Math.floor(Math.random()*9)+1;
+  const emoji = randomEmoji();
+  const choices = generateChoices(n, 1, 10);
+  renderExercise(panel, {
+    title: '🍎 ¡Cuenta los objetos!',
+    question: '¿Cuántos hay?',
+    emojiLine: buildEmojiLine(n, emoji),
+    options: choices.opts,
+    correct: choices.correctIdx,
+    topic: 'count',
+  });
+}
+
+// ========== SUMAS ==========
+function renderSum(panel) {
+  const a = Math.floor(Math.random()*5)+1;
+  const b = Math.floor(Math.random()*5)+1;
+  const result = a + b;
+  const emoji1 = randomEmoji(), emoji2 = randomEmoji();
+  const choices = generateChoices(result, 1, 10);
+  renderExercise(panel, {
+    title: '➕ ¡Hagamos una suma!',
+    question: `${a} + ${b} = ?`,
+    emojiLine: buildEmojiLine(a, emoji1) + '   +   ' + buildEmojiLine(b, emoji2),
+    options: choices.opts,
+    correct: choices.correctIdx,
+    topic: 'sum',
+  });
+}
+
+// ========== RESTAS ==========
+function renderSub(panel) {
+  let a = Math.floor(Math.random()*8)+2;
+  let b = Math.floor(Math.random()*(a-1))+1;
+  const result = a - b;
+  const emoji = randomEmoji();
+  const choices = generateChoices(result, 0, 9);
+  renderExercise(panel, {
+    title: '➖ ¡Una resta mágica!',
+    question: `${a} - ${b} = ?`,
+    emojiLine: buildEmojiLine(a, emoji),
+    options: choices.opts,
+    correct: choices.correctIdx,
+    topic: 'sub',
+  });
+}
+
+// ========== GENERAR OPCIONES ==========
+function generateChoices(correct, min, max) {
+  const opts = new Set([correct]);
+  let attempts = 0;
+  while (opts.size < 4 && attempts < 50) {
+    let v = Math.floor(Math.random()*( max-min+1))+min;
+    if (v !== correct) opts.add(v);
+    attempts++;
+  }
+  const arr = Array.from(opts).sort(() => Math.random()-0.5);
+  return { opts: arr, correctIdx: arr.indexOf(correct) };
+}
+
+// ========== MONEDAS ==========
+const COIN_CONFIGS = [
+  { val: 1, cls: 'coin-1', label: '1¢', unit: 'cen' },
+  { val: 2, cls: 'coin-2', label: '2¢', unit: 'cen' },
+  { val: 5, cls: 'coin-5', label: '5¢', unit: 'cen' },
+  { val: 10, cls: 'coin-10', label: '10¢', unit: 'cen' },
+  { val: 50, cls: 'coin-50', label: '50¢', unit: 'cen' },
+];
+
+function renderCoins(panel) {
+  // Genera un objetivo aleatorio
+  const target = (Math.floor(Math.random()*10)+1) * 5; // 5, 10 ... 50
+  state.coinTarget = target;
+  state.coinGameTotal = 0;
+
+  panel.innerHTML = `
+    <div class="section-title">🪙 ¡Jugamos con monedas!</div>
+    <div class="coin-task">
+      Junta exactamente <b>${target}¢</b> tocando las monedas.<br>
+      <span style="font-size:0.8rem;color:rgba(255,255,255,0.5)">¡Toca para sumar!</span>
+    </div>
+    <div class="coin-total" id="coinTotal">💰 Total: 0¢ / ${target}¢</div>
+    <div class="coin-display" id="coinDisp">
+      ${COIN_CONFIGS.map(c=>`
+        <div class="coin ${c.cls}" onclick="addCoin(${c.val})">
+          <span class="cval">${c.label}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="feedback" id="coinFb"></div>
+    <button class="coin-reset" onclick="renderCoins(document.getElementById('mainPanel'))">🔄 Nueva ronda</button>
+    <div class="info-badge">💡 Las monedas de color dorado valen 1, 2 o 5 centavos.<br>Las plateadas valen 10 o 50 centavos.</div>
+  `;
+
+  window.addCoin = function(val) {
+    state.coinGameTotal += val;
+    const el = document.getElementById('coinTotal');
+    const fb = document.getElementById('coinFb');
+    el.textContent = `💰 Total: ${state.coinGameTotal}¢ / ${target}¢`;
+
+    if (state.coinGameTotal === target) {
+      el.style.color = 'var(--mint)';
+      el.style.borderColor = 'var(--mint)';
+      fb.className = 'feedback show good';
+      fb.textContent = `¡Perfecto! Juntaste ${target}¢ 🎉 +2⭐`;
+      state.stars += 2;
+      state.coinsCollected++;
+      state.correctPerTopic.coins++;
+      if (state.correctPerTopic.coins > 10) state.correctPerTopic.coins = 10;
+      state.level = Math.floor(state.stars/10)+1;
+      updateHeader();
+      checkAchievements();
+      if (state.stars % 5 === 0) showCelebration();
+    } else if (state.coinGameTotal > target) {
+      el.style.color = '#FF8FA3';
+      fb.className = 'feedback show bad';
+      fb.textContent = `¡Uy! Te pasaste de ${target}¢. ¡Reinicia! 🔄`;
+    } else {
+      el.style.color = 'var(--yellow)';
+      el.style.borderColor = 'rgba(255,225,77,0.4)';
+      fb.className = 'feedback show';
+      fb.style.color = 'rgba(255,255,255,0.6)';
+      fb.textContent = `Faltan ${target - state.coinGameTotal}¢ más...`;
+    }
+  };
+}
+
+// ========== LOGROS ==========
+const ACHIEVEMENTS_LIST = [
+  { key:'first',   icon:'🌟', name:'¡Primera vez!',   desc:'Responde correctamente por primera vez' },
+  { key:'streak3', icon:'🔥', name:'¡En racha!',       desc:'3 respuestas correctas seguidas' },
+  { key:'streak5', icon:'🚀', name:'¡Imparable!',      desc:'5 correctas seguidas' },
+  { key:'stars10', icon:'💫', name:'10 Estrellas',     desc:'Gana 10 estrellas' },
+  { key:'stars25', icon:'🌙', name:'25 Estrellas',     desc:'Gana 25 estrellas' },
+  { key:'stars50', icon:'🦄', name:'50 Estrellas',     desc:'Gana 50 estrellas' },
+  { key:'count10', icon:'🍎', name:'Maestra contando', desc:'10 conteos correctos' },
+  { key:'sum10',   icon:'➕', name:'Suma mágica',      desc:'10 sumas correctas' },
+  { key:'sub10',   icon:'➖', name:'Resta veloz',      desc:'10 restas correctas' },
+  { key:'coins10', icon:'🪙', name:'Ahorradora',       desc:'10 retos de monedas' },
+  { key:'perfect5',icon:'💎', name:'¡Perfecta!',       desc:'5 correctas sin errores' },
+];
+
+function checkAchievements() {
+  const prev = { ...state.achievements };
+  if (state.correct >= 1)                           state.achievements.first = true;
+  if (state.streak >= 3)                            state.achievements.streak3 = true;
+  if (state.streak >= 5)                            state.achievements.streak5 = true;
+  if (state.stars >= 10)                            state.achievements.stars10 = true;
+  if (state.stars >= 25)                            state.achievements.stars25 = true;
+  if (state.stars >= 50)                            state.achievements.stars50 = true;
+  if (state.correctPerTopic.count >= 10)            state.achievements.count10 = true;
+  if (state.correctPerTopic.sum >= 10)              state.achievements.sum10 = true;
+  if (state.correctPerTopic.sub >= 10)              state.achievements.sub10 = true;
+  if (state.coinsCollected >= 10)                   state.achievements.coins10 = true;
+  if (state.correct >= 5 && state.streak >= 5)      state.achievements.perfect5 = true;
+
+  ACHIEVEMENTS_LIST.forEach(a => {
+    if (state.achievements[a.key] && !prev[a.key]) {
+      showToast(`🏆 ¡Nuevo logro: ${a.name}! ${a.icon}`);
+    }
+  });
+}
+
+function renderTrophies(panel) {
+  const unlocked = ACHIEVEMENTS_LIST.filter(a=>state.achievements[a.key]).length;
+  panel.innerHTML = `
+    <div class="section-title">🏆 Mis Logros</div>
+    <div class="mini-stats">
+      <div class="mini-stat">
+        <div class="ms-val">${state.stars}</div>
+        <div class="ms-lbl">⭐ Estrellas</div>
+      </div>
+      <div class="mini-stat">
+        <div class="ms-val">${state.maxStreak}</div>
+        <div class="ms-lbl">🔥 Mejor racha</div>
+      </div>
+      <div class="mini-stat">
+        <div class="ms-val">${unlocked}/${ACHIEVEMENTS_LIST.length}</div>
+        <div class="ms-lbl">🏆 Logros</div>
+      </div>
+    </div>
+    <div class="achievements">
+      ${ACHIEVEMENTS_LIST.map(a => `
+        <div class="achievement ${state.achievements[a.key]?'unlocked':''}">
+          <span class="ach-icon">${state.achievements[a.key]?a.icon:'🔒'}</span>
+          <span class="ach-name">${state.achievements[a.key]?a.name:'???'}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="info-badge" style="margin-top:14px;display:block;">
+      💡 Sigue jugando para desbloquear todos los logros
+    </div>
+  `;
+}
+
+// ========== CELEBRACIÓN ==========
+function showCelebration() {
+  const cel = document.getElementById('celebration');
+  const msgs = [
+    ['¡FANTÁSTICO! 🎉','¡Eres una matemática mágica!'],
+    ['¡INCREÍBLE! ✨','¡Estrellas para ti!'],
+    ['¡MARAVILLOSA! 🦄','¡Sigue así, campeona!'],
+    ['¡GENIAL! 🌈','¡Eres súper inteligente!'],
+  ];
+  const m = msgs[Math.floor(Math.random()*msgs.length)];
+  document.getElementById('celTitle').textContent = m[0];
+  document.getElementById('celSub').textContent = m[1];
+  document.getElementById('celStars').textContent = '⭐'.repeat(Math.min(state.stars%5||5,5));
+  cel.classList.add('show');
+
+  // Confetti
+  const cc = document.getElementById('celConfetti');
+  cc.innerHTML = '';
+  const conf = ['🌸','⭐','🎉','🦋','✨','🌈','💫','🎊'];
+  for (let i=0;i<20;i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.textContent = conf[Math.floor(Math.random()*conf.length)];
+    c.style.cssText = `left:${Math.random()*100}%;animation-duration:${(Math.random()*2+2).toFixed(1)}s;animation-delay:${(Math.random()*1).toFixed(1)}s;`;
+    cc.appendChild(c);
   }
 }
 
-// función random
-function random(min, max){
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function closeCelebration() {
+  document.getElementById('celebration').classList.remove('show');
 }
 
-// iniciar
-newQuestion();
+// ========== TOAST ==========
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
 </script>
-
 </body>
 </html>
