@@ -47,7 +47,7 @@
   #app {
     position: relative; z-index: 1;
     max-width: 420px; margin: 0 auto;
-    padding: 0 0 80px 0;
+    padding: 0 0 20px 0;
     min-height: 100vh;
   }
 
@@ -245,14 +245,15 @@
     font-size: 1.3rem;
     background: linear-gradient(135deg, var(--pink), var(--purple));
     border: none; border-radius: 20px;
-    padding: 16px;
+    padding: 14px;
     color: white;
     cursor: pointer;
-    margin-top: 14px;
+    margin-top: 12px;
     display: none;
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 6px 20px rgba(155,93,229,0.5);
     touch-action: manipulation;
+    animation: fadeIn 0.3s ease;
   }
   .next-btn.show { display: block; }
   .next-btn:active { transform: scale(0.97); }
@@ -380,7 +381,7 @@
 
   /* TOAST */
   #toast {
-    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
     background: rgba(0,0,0,0.85); color: white;
     padding: 10px 24px; border-radius: 30px;
     font-family: 'Fredoka One', cursive; font-size: 1rem;
@@ -448,30 +449,6 @@
     font-size: 0.78rem; color: rgba(255,255,255,0.6);
     margin: 4px auto; text-align: center;
   }
-
-  /* BARRA INFERIOR */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; max-width: 420px;
-    background: rgba(20,10,50,0.95);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(255,255,255,0.1);
-    display: flex; justify-content: space-around;
-    padding: 10px 0 12px;
-    z-index: 200;
-  }
-  .bnav-btn {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 3px; cursor: pointer;
-    font-size: 0.6rem; font-weight: 700;
-    color: rgba(255,255,255,0.4);
-    transition: all 0.2s;
-    touch-action: manipulation;
-    padding: 4px 12px;
-  }
-  .bnav-btn .bico { font-size: 1.5rem; }
-  .bnav-btn.active { color: var(--pink); }
-  .bnav-btn.active .bico { filter: drop-shadow(0 0 8px var(--pink)); }
 
   /* COIN-GAME */
   .coin-task {
@@ -560,24 +537,7 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
-<!-- BARRA INFERIOR -->
-<div class="bottom-nav" id="bottomNav" style="display:none;">
-  <div class="bnav-btn active" onclick="switchTab('count')" id="bnav-count">
-    <span class="bico">🍎</span><span>Contar</span>
-  </div>
-  <div class="bnav-btn" onclick="switchTab('sum')" id="bnav-sum">
-    <span class="bico">➕</span><span>Sumas</span>
-  </div>
-  <div class="bnav-btn" onclick="switchTab('sub')" id="bnav-sub">
-    <span class="bico">➖</span><span>Restas</span>
-  </div>
-  <div class="bnav-btn" onclick="switchTab('coins')" id="bnav-coins">
-    <span class="bico">🪙</span><span>Monedas</span>
-  </div>
-  <div class="bnav-btn" onclick="switchTab('trophies')" id="bnav-trophies">
-    <span class="bico">🏆</span><span>Logros</span>
-  </div>
-</div>
+<!-- BARRA INFERIOR ELIMINADA -->
 
 <script>
 // ========== ESTADO GLOBAL ==========
@@ -619,24 +579,20 @@ const state = {
 function startApp() {
   document.getElementById('homeScreen').style.display = 'none';
   document.getElementById('mainScreen').style.display = 'block';
-  document.getElementById('bottomNav').style.display = 'flex';
   switchTab('count');
 }
 
 // ========== SWITCH TAB ==========
 function switchTab(tab) {
   state.currentTab = tab;
-  // tabs
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+tab)?.classList.add('active');
-  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('bnav-'+tab)?.classList.add('active');
 
   const panel = document.getElementById('mainPanel');
-  if (tab === 'count')   renderCount(panel);
-  if (tab === 'sum')     renderSum(panel);
-  if (tab === 'sub')     renderSub(panel);
-  if (tab === 'coins')   renderCoins(panel);
+  if (tab === 'count')    renderCount(panel);
+  if (tab === 'sum')      renderSum(panel);
+  if (tab === 'sub')      renderSub(panel);
+  if (tab === 'coins')    renderCoins(panel);
   if (tab === 'trophies') renderTrophies(panel);
 }
 
@@ -674,8 +630,8 @@ function renderExercise(panel, { title, question, emojiLine, options, correct, s
         ${options.map((o,i)=>`<button class="opt-btn" onclick="checkAnswer(${i})">${o}</button>`).join('')}
       </div>
       <div class="feedback" id="fb"></div>
+      <button class="next-btn" id="nextBtn" onclick="switchTab('${topic}')">¡Siguiente! ➡️</button>
     </div>
-    <button class="next-btn" id="nextBtn" onclick="switchTab('${topic}')">¡Siguiente! ➡️</button>
   `;
 
   window.checkAnswer = function(idx) {
