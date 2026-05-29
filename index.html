@@ -238,27 +238,76 @@
   .feedback.good { color: var(--mint); background: rgba(0,212,170,0.1); }
   .feedback.bad { color: #FF8FA3; background: rgba(255,77,109,0.1); }
 
-  /* BOTÓN SIGUIENTE */
-  .next-btn {
-    width: 100%;
-    font-family: 'Fredoka One', cursive;
-    font-size: 1.3rem;
-    background: linear-gradient(135deg, var(--pink), var(--purple));
-    border: none; border-radius: 20px;
-    padding: 14px;
-    color: white;
-    cursor: pointer;
+  /* COUNTDOWN */
+  .countdown-wrap {
     margin-top: 12px;
-    display: none;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 6px 20px rgba(155,93,229,0.5);
-    touch-action: manipulation;
     animation: fadeIn 0.3s ease;
   }
-  .next-btn.show { display: block; }
-  .next-btn:active { transform: scale(0.97); }
+  .countdown-bar {
+    height: 8px; background: rgba(255,255,255,0.1);
+    border-radius: 10px; overflow: hidden; margin-bottom: 6px;
+  }
+  .countdown-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--mint), var(--sky));
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(76,201,240,0.6);
+  }
+  .countdown-txt {
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.5);
+  }
 
-  /* LOGROS */
+  /* MONEDAS MEXICANAS */
+  .coin-display {
+    display: flex; flex-wrap: wrap;
+    gap: 14px; justify-content: center;
+    margin: 14px 0;
+  }
+  .coin {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    touch-action: manipulation;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.3);
+  }
+  /* $1 — acero inoxidable bimetálica (centro dorado, borde plateado) */
+  .coin.coin-1 {
+    background: radial-gradient(circle at 40% 35%, #F5D78A 0%, #C8A030 45%, #9E9E9E 46%, #BDBDBD 100%);
+    border: 3px solid #888;
+    color: #3E2000;
+  }
+  /* $2 — acero inoxidable bimetálica (centro plateado, borde dorado) */
+  .coin.coin-2 {
+    background: radial-gradient(circle at 40% 35%, #D8D8D8 0%, #A0A0A0 45%, #C8A030 46%, #E8C040 100%);
+    border: 3px solid #B8860B;
+    color: #1A1A1A;
+  }
+  /* $5 — acero inoxidable bimetálica (centro dorado, borde plateado, más grande) */
+  .coin.coin-5 {
+    width: 80px; height: 80px;
+    background: radial-gradient(circle at 40% 35%, #F0C832 0%, #B8860B 48%, #9E9E9E 49%, #C8C8C8 100%);
+    border: 3px solid #777;
+    color: #2A1000;
+  }
+  /* $10 — bimetálica dorada más grande */
+  .coin.coin-10 {
+    width: 86px; height: 86px;
+    background: radial-gradient(circle at 40% 35%, #EEEEEE 0%, #AAAAAA 42%, #D4AF37 43%, #C8A030 100%);
+    border: 4px solid #A07820;
+    color: #1A1A1A;
+  }
+  .coin:active { transform: scale(0.88); box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+  .coin .csym { font-size: 0.75rem; font-weight: 900; line-height: 1; }
+  .coin .cval { font-size: 1.3rem; font-weight: 900; line-height: 1.1; }
+
   .achievements {
     display: grid; grid-template-columns: 1fr 1fr 1fr;
     gap: 10px; margin-top: 6px;
@@ -300,14 +349,7 @@
     touch-action: manipulation;
     position: relative;
   }
-  .coin.coin-1  { background: linear-gradient(135deg,#E8C97A,#C8A55A); border-color: #C8A55A; color: #7A4A00; }
-  .coin.coin-2  { background: linear-gradient(135deg,#E8C97A,#C8A55A); border-color: #C8A55A; color: #7A4A00; }
-  .coin.coin-5  { background: linear-gradient(135deg,#E8C97A,#C8A55A); border-color: #C8A55A; color: #7A4A00; }
-  .coin.coin-10 { background: linear-gradient(135deg,#D4D4D4,#A8A8A8); border-color: #888; color: #333; }
-  .coin.coin-50 { background: linear-gradient(135deg,#D4D4D4,#A8A8A8); border-color: #888; color: #333; }
-  .coin:active { transform: scale(0.92); }
-  .coin .cval { font-size: 1.2rem; font-weight: 900; }
-  .coin .cunit { font-size: 0.55rem; font-weight: 700; }
+  /* los estilos de .coin.coin-X están definidos en el bloque MONEDAS MEXICANAS del CSS */
 
   /* TOTAL DE MONEDAS */
   .coin-total {
@@ -614,6 +656,8 @@ function buildEmojiLine(n, emoji) {
 // ========== RENDER GENÉRICO ==========
 function renderExercise(panel, { title, question, emojiLine, options, correct, starsGiven=1, topic }) {
   let answered = false;
+  let autoTimer = null;
+
   panel.innerHTML = `
     <div class="section-title">${title}</div>
     <div class="progress-wrap">
@@ -630,7 +674,10 @@ function renderExercise(panel, { title, question, emojiLine, options, correct, s
         ${options.map((o,i)=>`<button class="opt-btn" onclick="checkAnswer(${i})">${o}</button>`).join('')}
       </div>
       <div class="feedback" id="fb"></div>
-      <button class="next-btn" id="nextBtn" onclick="switchTab('${topic}')">¡Siguiente! ➡️</button>
+      <div class="countdown-wrap" id="cdWrap" style="display:none;">
+        <div class="countdown-bar"><div class="countdown-fill" id="cdFill"></div></div>
+        <div class="countdown-txt" id="cdTxt">Siguiente en 3...</div>
+      </div>
     </div>
   `;
 
@@ -640,7 +687,6 @@ function renderExercise(panel, { title, question, emojiLine, options, correct, s
     const opts = document.querySelectorAll('.opt-btn');
     const card = document.getElementById('exCard');
     const fb = document.getElementById('fb');
-    const nb = document.getElementById('nextBtn');
     state.total++;
 
     opts.forEach(b => b.disabled = true);
@@ -662,7 +708,10 @@ function renderExercise(panel, { title, question, emojiLine, options, correct, s
       const msgs = ['¡Súper bien! 🌟','¡Lo lograste! 🎉','¡Eres increíble! 🦄','¡Perfecto! ✨','¡Bravo! 🌈','¡Maravilloso! 🌸'];
       fb.textContent = msgs[Math.floor(Math.random()*msgs.length)] + ` +${starsGiven}⭐`;
 
-      if (state.stars % 5 === 0) showCelebration();
+      if (state.stars % 5 === 0) {
+        showCelebration();
+        return; // La celebración bloquea; al cerrarla se sigue jugando
+      }
     } else {
       opts[idx].classList.add('selected-wrong');
       opts[correct].classList.add('selected-correct');
@@ -672,8 +721,35 @@ function renderExercise(panel, { title, question, emojiLine, options, correct, s
       const msgs = ['¡Casi! Inténtalo de nuevo 💪','¡No te rindas! 🌸','¡Tú puedes! 🦋'];
       fb.textContent = msgs[Math.floor(Math.random()*msgs.length)];
     }
-    nb.classList.add('show');
+
+    startCountdown(topic);
   };
+
+  function startCountdown(topic) {
+    const cdWrap = document.getElementById('cdWrap');
+    const cdFill = document.getElementById('cdFill');
+    const cdTxt  = document.getElementById('cdTxt');
+    if (!cdWrap) return;
+    cdWrap.style.display = 'block';
+    const total = 3000;
+    const step  = 50;
+    let elapsed = 0;
+    let secs    = 3;
+    cdFill.style.transition = `width ${total}ms linear`;
+    requestAnimationFrame(() => { cdFill.style.width = '100%'; });
+    autoTimer = setInterval(() => {
+      elapsed += step;
+      const remaining = Math.ceil((total - elapsed) / 1000);
+      if (remaining !== secs) {
+        secs = remaining;
+        if (cdTxt) cdTxt.textContent = secs > 0 ? `Siguiente en ${secs}...` : '¡Vamos! 🚀';
+      }
+      if (elapsed >= total) {
+        clearInterval(autoTimer);
+        switchTab(topic);
+      }
+    }, step);
+  }
 }
 
 // ========== CONTAR ==========
@@ -738,51 +814,50 @@ function generateChoices(correct, min, max) {
   return { opts: arr, correctIdx: arr.indexOf(correct) };
 }
 
-// ========== MONEDAS ==========
+// ========== MONEDAS MEXICANAS ==========
 const COIN_CONFIGS = [
-  { val: 1, cls: 'coin-1', label: '1¢', unit: 'cen' },
-  { val: 2, cls: 'coin-2', label: '2¢', unit: 'cen' },
-  { val: 5, cls: 'coin-5', label: '5¢', unit: 'cen' },
-  { val: 10, cls: 'coin-10', label: '10¢', unit: 'cen' },
-  { val: 50, cls: 'coin-50', label: '50¢', unit: 'cen' },
+  { val: 1,  cls: 'coin-1',  label: '$1'  },
+  { val: 2,  cls: 'coin-2',  label: '$2'  },
+  { val: 5,  cls: 'coin-5',  label: '$5'  },
+  { val: 10, cls: 'coin-10', label: '$10' },
 ];
 
 function renderCoins(panel) {
-  // Genera un objetivo aleatorio
-  const target = (Math.floor(Math.random()*10)+1) * 5; // 5, 10 ... 50
+  const targets = [3, 4, 5, 6, 7, 8, 10, 11, 12, 15, 16, 20];
+  const target = targets[Math.floor(Math.random()*targets.length)];
   state.coinTarget = target;
   state.coinGameTotal = 0;
 
   panel.innerHTML = `
     <div class="section-title">🪙 ¡Jugamos con monedas!</div>
     <div class="coin-task">
-      Junta exactamente <b>${target}¢</b> tocando las monedas.<br>
+      Junta exactamente <b>$${target}</b> tocando las monedas.<br>
       <span style="font-size:0.8rem;color:rgba(255,255,255,0.5)">¡Toca para sumar!</span>
     </div>
-    <div class="coin-total" id="coinTotal">💰 Total: 0¢ / ${target}¢</div>
+    <div class="coin-total" id="coinTotal">💰 Total: $0 / $${target}</div>
     <div class="coin-display" id="coinDisp">
       ${COIN_CONFIGS.map(c=>`
         <div class="coin ${c.cls}" onclick="addCoin(${c.val})">
-          <span class="cval">${c.label}</span>
+          <span class="csym">$</span><span class="cval">${c.val}</span>
         </div>
       `).join('')}
     </div>
     <div class="feedback" id="coinFb"></div>
     <button class="coin-reset" onclick="renderCoins(document.getElementById('mainPanel'))">🔄 Nueva ronda</button>
-    <div class="info-badge">💡 Las monedas de color dorado valen 1, 2 o 5 centavos.<br>Las plateadas valen 10 o 50 centavos.</div>
+    <div class="info-badge">💡 $1 y $2 son bimetálicas pequeñas · $5 es dorada · $10 es la más grande</div>
   `;
 
   window.addCoin = function(val) {
     state.coinGameTotal += val;
     const el = document.getElementById('coinTotal');
     const fb = document.getElementById('coinFb');
-    el.textContent = `💰 Total: ${state.coinGameTotal}¢ / ${target}¢`;
+    el.textContent = `💰 Total: $${state.coinGameTotal} / $${target}`;
 
     if (state.coinGameTotal === target) {
       el.style.color = 'var(--mint)';
       el.style.borderColor = 'var(--mint)';
       fb.className = 'feedback show good';
-      fb.textContent = `¡Perfecto! Juntaste ${target}¢ 🎉 +2⭐`;
+      fb.textContent = `¡Perfecto! Juntaste $${target} 🎉 +2⭐`;
       state.stars += 2;
       state.coinsCollected++;
       state.correctPerTopic.coins++;
@@ -794,13 +869,13 @@ function renderCoins(panel) {
     } else if (state.coinGameTotal > target) {
       el.style.color = '#FF8FA3';
       fb.className = 'feedback show bad';
-      fb.textContent = `¡Uy! Te pasaste de ${target}¢. ¡Reinicia! 🔄`;
+      fb.textContent = `¡Uy! Te pasaste de $${target}. ¡Reinicia! 🔄`;
     } else {
       el.style.color = 'var(--yellow)';
       el.style.borderColor = 'rgba(255,225,77,0.4)';
       fb.className = 'feedback show';
       fb.style.color = 'rgba(255,255,255,0.6)';
-      fb.textContent = `Faltan ${target - state.coinGameTotal}¢ más...`;
+      fb.textContent = `Faltan $${target - state.coinGameTotal} más...`;
     }
   };
 }
