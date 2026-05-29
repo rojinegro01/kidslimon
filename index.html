@@ -330,39 +330,99 @@
   .achievement.unlocked .ach-name { color: var(--star); }
   .achievement .ach-lock { font-size: 1rem; opacity: 0.3; }
 
-  /* MONEDAS */
-  .coin-display {
-    display: flex; flex-wrap: wrap;
-    gap: 10px; justify-content: center;
-    margin: 14px 0;
+  /* ===== JUEGO DE MONEDAS DRAG & DROP ===== */
+  .coin-game-wrap { display: flex; flex-direction: column; gap: 10px; }
+
+  .coin-zone-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.85rem; color: rgba(255,255,255,0.55);
+    text-align: center; margin-bottom: 4px; letter-spacing: 0.5px;
   }
+
+  /* Zona fuente (banco de monedas) */
+  .coin-bank {
+    background: rgba(255,255,255,0.06);
+    border: 2px dashed rgba(255,255,255,0.2);
+    border-radius: 20px;
+    min-height: 110px;
+    padding: 12px 10px;
+    display: flex; flex-wrap: wrap;
+    gap: 10px; justify-content: center; align-items: center;
+  }
+
+  /* Zona destino (alcancía) */
+  .coin-drop {
+    background: rgba(255,215,0,0.07);
+    border: 2px dashed rgba(255,215,0,0.35);
+    border-radius: 20px;
+    min-height: 110px;
+    padding: 12px 10px;
+    display: flex; flex-wrap: wrap;
+    gap: 8px; justify-content: center; align-items: center;
+    transition: background 0.2s, border-color 0.2s;
+    position: relative;
+  }
+  .coin-drop.drag-over {
+    background: rgba(255,215,0,0.18);
+    border-color: var(--star);
+    box-shadow: 0 0 20px rgba(255,215,0,0.25);
+  }
+  .coin-drop-hint {
+    position: absolute;
+    font-size: 2.2rem; opacity: 0.18;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Total visual */
+  .coin-total-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 10px 16px;
+    font-family: 'Fredoka One', cursive;
+  }
+  .coin-total-bar .ct-label { font-size: 0.9rem; color: rgba(255,255,255,0.5); }
+  .coin-total-bar .ct-val   { font-size: 1.6rem; color: var(--yellow); }
+  .coin-total-bar .ct-goal  { font-size: 0.9rem; color: rgba(255,255,255,0.4); }
+
+  /* Monedas individuales — base */
   .coin {
-    width: 60px; height: 60px;
     border-radius: 50%;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     font-family: 'Fredoka One', cursive;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: grab;
     border: 3px solid;
-    touch-action: manipulation;
     position: relative;
+    user-select: none;
+    touch-action: none;   /* necesario para touch events manuales */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.3);
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
   }
-  /* los estilos de .coin.coin-X están definidos en el bloque MONEDAS MEXICANAS del CSS */
+  .coin:active { cursor: grabbing; }
+  .coin.dragging { opacity: 0.35; transform: scale(0.9); }
+  .coin.in-drop  { cursor: grab; }
 
-  /* TOTAL DE MONEDAS */
-  .coin-total {
-    text-align: center;
+  /* Tamaños por denominación */
+  .coin.coin-1  { width: 54px; height: 54px; }
+  .coin.coin-2  { width: 58px; height: 58px; }
+  .coin.coin-5  { width: 64px; height: 64px; }
+  .coin.coin-10 { width: 72px; height: 72px; }
+
+  .coin .csym { font-size: 0.7rem;  font-weight: 900; line-height: 1; }
+  .coin .cval { font-size: 1.2rem;  font-weight: 900; line-height: 1.1; }
+
+  /* Botón reset monedas */
+  .coin-reset {
     font-family: 'Fredoka One', cursive;
-    font-size: 1.8rem;
-    color: var(--yellow);
-    background: rgba(255,225,77,0.1);
-    border: 2px dashed rgba(255,225,77,0.4);
-    border-radius: 16px;
-    padding: 12px;
-    margin: 10px 0;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 14px; padding: 10px 20px;
+    color: white; cursor: pointer; font-size: 1rem;
+    transition: all 0.2s; display: block; margin: 4px auto 0;
+    touch-action: manipulation;
   }
+  .coin-reset:active { transform: scale(0.95); }
 
   /* BARRA DE PROGRESO */
   .progress-wrap { margin: 8px 0 14px; }
@@ -626,6 +686,7 @@ function startApp() {
 
 // ========== SWITCH TAB ==========
 function switchTab(tab) {
+  if (window._cleanCoinListeners) { window._cleanCoinListeners(); window._cleanCoinListeners = null; }
   state.currentTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+tab)?.classList.add('active');
@@ -814,69 +875,166 @@ function generateChoices(correct, min, max) {
   return { opts: arr, correctIdx: arr.indexOf(correct) };
 }
 
-// ========== MONEDAS MEXICANAS ==========
+// ========== MONEDAS MEXICANAS — DRAG & DROP ==========
 const COIN_CONFIGS = [
-  { val: 1,  cls: 'coin-1',  label: '$1'  },
-  { val: 2,  cls: 'coin-2',  label: '$2'  },
-  { val: 5,  cls: 'coin-5',  label: '$5'  },
-  { val: 10, cls: 'coin-10', label: '$10' },
+  { val: 1,  cls: 'coin-1',  qty: 5 },
+  { val: 2,  cls: 'coin-2',  qty: 4 },
+  { val: 5,  cls: 'coin-5',  qty: 3 },
+  { val: 10, cls: 'coin-10', qty: 2 },
 ];
+const COIN_STYLES = {
+  'coin-1':  'background:radial-gradient(circle at 40% 35%,#F5D78A 0%,#C8A030 45%,#9E9E9E 46%,#BDBDBD 100%);border-color:#888;color:#3E2000;',
+  'coin-2':  'background:radial-gradient(circle at 40% 35%,#D8D8D8 0%,#A0A0A0 45%,#C8A030 46%,#E8C040 100%);border-color:#B8860B;color:#1A1A1A;',
+  'coin-5':  'background:radial-gradient(circle at 40% 35%,#F0C832 0%,#B8860B 48%,#9E9E9E 49%,#C8C8C8 100%);border-color:#777;color:#2A1000;',
+  'coin-10': 'background:radial-gradient(circle at 40% 35%,#EEEEEE 0%,#AAAAAA 42%,#D4AF37 43%,#C8A030 100%);border-color:#A07820;color:#1A1A1A;',
+};
+
+function makeCoinEl(cfg) {
+  const d = document.createElement('div');
+  d.className = `coin ${cfg.cls}`;
+  d.dataset.val = cfg.val;
+  d.innerHTML = `<span class="csym">$</span><span class="cval">${cfg.val}</span>`;
+  d.style.cssText = COIN_STYLES[cfg.cls];
+  return d;
+}
 
 function renderCoins(panel) {
-  const targets = [3, 4, 5, 6, 7, 8, 10, 11, 12, 15, 16, 20];
-  const target = targets[Math.floor(Math.random()*targets.length)];
-  state.coinTarget = target;
-  state.coinGameTotal = 0;
+  // Limpiar listeners anteriores si los hay
+  if (window._cleanCoinListeners) { window._cleanCoinListeners(); window._cleanCoinListeners = null; }
+
+  const targets = [3,4,5,6,7,8,10,11,12,13,15,16,17,20];
+  const target  = targets[Math.floor(Math.random()*targets.length)];
+  let dropped   = [];
+  let won       = false;
 
   panel.innerHTML = `
-    <div class="section-title">🪙 ¡Jugamos con monedas!</div>
-    <div class="coin-task">
-      Junta exactamente <b>$${target}</b> tocando las monedas.<br>
-      <span style="font-size:0.8rem;color:rgba(255,255,255,0.5)">¡Toca para sumar!</span>
+    <div class="section-title">🪙 ¡Junta las monedas!</div>
+    <div class="coin-task">Arrastra monedas hasta juntar exactamente <b>$${target}</b></div>
+    <div class="coin-total-bar">
+      <span class="ct-label">💰 Total</span>
+      <span class="ct-val" id="ctVal">$0</span>
+      <span class="ct-goal">/ $${target}</span>
     </div>
-    <div class="coin-total" id="coinTotal">💰 Total: $0 / $${target}</div>
-    <div class="coin-display" id="coinDisp">
-      ${COIN_CONFIGS.map(c=>`
-        <div class="coin ${c.cls}" onclick="addCoin(${c.val})">
-          <span class="csym">$</span><span class="cval">${c.val}</span>
-        </div>
-      `).join('')}
+    <div class="coin-game-wrap">
+      <div>
+        <div class="coin-zone-label">Banco de monedas — arrastra hacia abajo ⬇️</div>
+        <div class="coin-bank" id="coinBank"></div>
+      </div>
+      <div>
+        <div class="coin-zone-label">⬆️ Arrastra de vuelta para regresar · Tu alcancía ⬇️</div>
+        <div class="coin-drop" id="coinDrop"><span class="coin-drop-hint">🏦</span></div>
+      </div>
     </div>
     <div class="feedback" id="coinFb"></div>
     <button class="coin-reset" onclick="renderCoins(document.getElementById('mainPanel'))">🔄 Nueva ronda</button>
-    <div class="info-badge">💡 $1 y $2 son bimetálicas pequeñas · $5 es dorada · $10 es la más grande</div>
   `;
 
-  window.addCoin = function(val) {
-    state.coinGameTotal += val;
-    const el = document.getElementById('coinTotal');
-    const fb = document.getElementById('coinFb');
-    el.textContent = `💰 Total: $${state.coinGameTotal} / $${target}`;
+  const bank  = document.getElementById('coinBank');
+  const dropZ = document.getElementById('coinDrop');
+  const ctVal = document.getElementById('ctVal');
+  const fb    = document.getElementById('coinFb');
 
-    if (state.coinGameTotal === target) {
-      el.style.color = 'var(--mint)';
-      el.style.borderColor = 'var(--mint)';
+  COIN_CONFIGS.forEach(cfg => {
+    for (let i = 0; i < cfg.qty; i++) bank.appendChild(makeCoinEl(cfg));
+  });
+
+  function recalc() {
+    const total = dropped.reduce((s,c) => s + parseInt(c.dataset.val), 0);
+    ctVal.textContent = `$${total}`;
+    if (won) return;
+    if (total === target) {
+      won = true;
+      ctVal.style.color = 'var(--mint)';
       fb.className = 'feedback show good';
       fb.textContent = `¡Perfecto! Juntaste $${target} 🎉 +2⭐`;
-      state.stars += 2;
-      state.coinsCollected++;
-      state.correctPerTopic.coins++;
-      if (state.correctPerTopic.coins > 10) state.correctPerTopic.coins = 10;
+      state.stars += 2; state.coinsCollected++;
+      state.correctPerTopic.coins = Math.min(state.correctPerTopic.coins + 1, 10);
       state.level = Math.floor(state.stars/10)+1;
-      updateHeader();
-      checkAchievements();
+      updateHeader(); checkAchievements();
       if (state.stars % 5 === 0) showCelebration();
-    } else if (state.coinGameTotal > target) {
-      el.style.color = '#FF8FA3';
+    } else if (total > target) {
+      ctVal.style.color = '#FF8FA3';
       fb.className = 'feedback show bad';
-      fb.textContent = `¡Uy! Te pasaste de $${target}. ¡Reinicia! 🔄`;
+      fb.textContent = `¡Uy! Te pasaste ($${total}). Regresa alguna moneda 🔄`;
     } else {
-      el.style.color = 'var(--yellow)';
-      el.style.borderColor = 'rgba(255,225,77,0.4)';
-      fb.className = 'feedback show';
-      fb.style.color = 'rgba(255,255,255,0.6)';
-      fb.textContent = `Faltan $${target - state.coinGameTotal} más...`;
+      ctVal.style.color = 'var(--yellow)';
+      fb.className = ''; fb.textContent = '';
     }
+  }
+
+  // ── Drag & drop: mouse + touch ──
+  let ghost = null, dragEl = null, fromDrop = false;
+
+  function startDrag(e, coin) {
+    if (won) return;
+    dragEl   = coin;
+    fromDrop = dropZ.contains(coin);
+    coin.classList.add('dragging');
+
+    ghost = coin.cloneNode(true);
+    const sz = coin.getBoundingClientRect();
+    ghost.style.cssText += `;position:fixed;z-index:9999;pointer-events:none;opacity:0.85;
+      width:${sz.width}px;height:${sz.height}px;transform:scale(1.18);transition:none;margin:0;`;
+    document.body.appendChild(ghost);
+    moveGhost(e);
+    dropZ.classList.add('drag-over');
+  }
+
+  function moveGhost(e) {
+    if (!ghost) return;
+    const t = e.touches ? e.touches[0] : e;
+    const w = ghost.offsetWidth  || 60;
+    const h = ghost.offsetHeight || 60;
+    ghost.style.left = (t.clientX - w/2) + 'px';
+    ghost.style.top  = (t.clientY - h/2) + 'px';
+  }
+
+  function endDrag(e) {
+    if (!dragEl || !ghost) return;
+    const t = e.changedTouches ? e.changedTouches[0] : e;
+    const dr = dropZ.getBoundingClientRect();
+    const br = bank.getBoundingClientRect();
+    const cx = t.clientX, cy = t.clientY;
+    const inDrop = cx>=dr.left&&cx<=dr.right&&cy>=dr.top&&cy<=dr.bottom;
+    const inBank = cx>=br.left&&cx<=br.right&&cy>=br.top&&cy<=br.bottom;
+
+    dragEl.classList.remove('dragging');
+    ghost.remove(); ghost = null;
+    dropZ.classList.remove('drag-over');
+
+    if (fromDrop) {
+      if (!inDrop || inBank) {         // regresa al banco
+        bank.appendChild(dragEl);
+        dropped = dropped.filter(c => c !== dragEl);
+      }
+    } else {
+      if (inDrop) {                    // va a la alcancía
+        dropZ.appendChild(dragEl);
+        dropped.push(dragEl);
+      }
+    }
+    dragEl = null;
+    recalc();
+  }
+
+  const onStart = e => { const c = e.target.closest('.coin'); if (c) { e.preventDefault(); startDrag(e,c); } };
+  const onMove  = e => { if (dragEl) { e.preventDefault(); moveGhost(e); } };
+  const onEnd   = e => { if (dragEl) { e.preventDefault(); endDrag(e); } };
+
+  panel.addEventListener('mousedown',  onStart);
+  panel.addEventListener('touchstart', onStart, {passive:false});
+  document.addEventListener('mousemove',  onMove);
+  document.addEventListener('touchmove',  onMove, {passive:false});
+  document.addEventListener('mouseup',    onEnd);
+  document.addEventListener('touchend',   onEnd);
+
+  window._cleanCoinListeners = () => {
+    panel.removeEventListener('mousedown',  onStart);
+    panel.removeEventListener('touchstart', onStart);
+    document.removeEventListener('mousemove',  onMove);
+    document.removeEventListener('touchmove',  onMove);
+    document.removeEventListener('mouseup',    onEnd);
+    document.removeEventListener('touchend',   onEnd);
   };
 }
 
